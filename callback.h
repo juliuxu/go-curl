@@ -4,3 +4,4 @@ void *return_write_function();
 void *return_read_function();
 
 void *return_progress_function();
+void *return_debug_function();

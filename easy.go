@@ -93,9 +93,10 @@ type CURL struct {
 	headerFunction, writeFunction *func([]byte, interface{}) bool
 	readFunction                  *func([]byte, interface{}) int // return num of bytes writed to buf
 	progressFunction              *func(float64, float64, float64, float64, interface{}) bool
+	debugFunction                 *func(CurlInfo, []byte, interface{}) bool
 	fnmatchFunction               *func(string, string, interface{}) int
 	// callback datas
-	headerData, writeData, readData, progressData, fnmatchData *interface{}
+	headerData, writeData, readData, progressData, debugData, fnmatchData *interface{}
 }
 
 // curl_easy_init - Start a libcurl easy session
@@ -182,6 +183,18 @@ func (curl *CURL) Setopt(opt int, param interface{}) error {
 		ptr := C.return_write_function()
 		if err := newCurlError(C.curl_easy_setopt_pointer(p, C.CURLoption(opt), ptr)); err == nil {
 			return newCurlError(C.curl_easy_setopt_pointer(p, OPT_WRITEDATA,
+				unsafe.Pointer(reflect.ValueOf(curl).Pointer())))
+		} else {
+			return err
+		}
+
+	case opt == OPT_DEBUGFUNCTION:
+		fun := param.(func(CurlInfo, []byte, interface{}) bool)
+		curl.debugFunction = &fun
+
+		ptr := C.return_debug_function()
+		if err := newCurlError(C.curl_easy_setopt_pointer(p, C.CURLoption(opt), ptr)); err == nil {
+			return newCurlError(C.curl_easy_setopt_pointer(p, OPT_DEBUGDATA,
 				unsafe.Pointer(reflect.ValueOf(curl).Pointer())))
 		} else {
 			return err

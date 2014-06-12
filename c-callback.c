@@ -66,3 +66,18 @@ int progress_function(void *ctx, double dltotal, double dlnow, double ultotal, d
 void *return_progress_function() {
     return (void *)progress_function;
 }
+
+/* for OPT_DEBUGFUNCTION */
+int debug_function(CURL *handle, curl_infotype type, char *data, size_t size, void *ctx) {
+    void *go_debug_func = (void *)goGetCurlField((GoUintptr)ctx, "debugFunction");
+    GoInterface *clientp = (GoInterface *)goGetCurlField((GoUintptr)ctx, "debugData");
+
+    if (clientp == NULL) {
+    return goCallDebugCallback(go_debug_func, type, data, size, goNilInterface());
+    }
+    return goCallDebugCallback(go_debug_func, type, data, size, *clientp);
+}
+
+void *return_debug_function() {
+    return (void *)debug_function;
+}
